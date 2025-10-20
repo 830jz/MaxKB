@@ -14,6 +14,7 @@ export default {
     cancelGenerate: 'Cancel Generation',
     export: 'Export to',
     download: 'Download',
+    replace: 'Replace',
   },
 
   tip: {
@@ -102,10 +103,11 @@ export default {
     label: 'Tag Management',
     key: 'Tag',
     value: 'Value',
-    add: 'Add Tag',
+    addTag: 'Add Tag',
     setting: 'Tag Settings',
     create: 'Create Tag',
     edit: 'Edit Tag',
+    editValue: 'Edit Tag Value',
     deleteConfirm: 'Confirm delete tag: ',
     deleteTip: 'After deletion, resources using this tag will have the tag removed. Please proceed with caution!',
     requiredMessage1: 'Please enter a tag',

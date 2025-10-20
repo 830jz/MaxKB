@@ -62,7 +62,7 @@
                   :disabled="multipleSelection.length === 0"
                   v-if="permissionPrecise.doc_edit(id)"
                 >
-                  {{ $t('views.document.tag.add') }}
+                  {{ $t('views.document.tag.addTag') }}
                 </el-button>
                 <el-dropdown v-if="MoreFilledPermission0(id)">
                   <el-button class="ml-12 mr-12">
@@ -494,6 +494,21 @@
                             </el-icon>
                             {{ $t('views.document.setting.download') }}
                           </el-dropdown-item>
+                          <el-upload
+                            ref="elUploadRef"
+                            :file-list="[]"
+                            action="#"
+                            :auto-upload="false"
+                            :show-file-list="false"
+                            :on-change="(file: any, fileList: any) => replaceDocument(file, row)"
+                          >
+                            <el-dropdown-item v-if="permissionPrecise.doc_edit(id)">
+                              <el-icon class="color-secondary">
+                                <Upload />
+                              </el-icon>
+                              {{ $t('views.document.setting.replace') }}
+                            </el-dropdown-item>
+                          </el-upload>
                           <el-dropdown-item
                             @click.stop="deleteDocument(row)"
                             v-if="permissionPrecise.doc_delete(id)"
@@ -687,7 +702,7 @@ import permissionMap from '@/permission'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
 import TagDrawer from "./tag/TagDrawer.vue";
 import TagSettingDrawer from "./tag/TagSettingDrawer.vue";
-import AddTagDialog from "@/views/document/component/AddTagDialog.vue";
+import AddTagDialog from "@/views/document/tag/MulAddTagDialog.vue";
 
 const route = useRoute()
 const router = useRouter()
@@ -1077,6 +1092,20 @@ function downloadDocument(row: any) {
     .then(() => {
       getList()
     })
+}
+
+const elUploadRef = ref()
+
+function replaceDocument(file: any, row: any) {
+  const formData = new FormData()
+  formData.append('file', file.raw, file.name)
+  elUploadRef.value.clearFiles()
+  loadSharedApi({ type: 'document', systemType: apiType.value })
+    .postReplaceSourceFile(id, row.id, formData, loading)
+    .then(() => {
+      getList()
+    })
+    .catch((e: any) => {})
 }
 
 function deleteDocument(row: any) {
