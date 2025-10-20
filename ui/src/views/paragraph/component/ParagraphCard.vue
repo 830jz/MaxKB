@@ -5,7 +5,7 @@
     :class="data.is_active ? '' : 'disabled'"
     @mouseenter="cardEnter()"
     @mouseleave="cardLeave()"
-    @click.stop="handleClickCard(data)"
+    @click="handleClickCard(data, $event)"
     v-loading="loading"
   >
     <div v-show="show" class="mk-sticky" v-if="!disabled">
@@ -131,7 +131,6 @@
       :modelValue="data.content"
       class="maxkb-md"
       style="background: none"
-      @clickPreview="handleClickCard(data)"
     />
 
     <ParagraphDialog
@@ -169,12 +168,8 @@ const props = defineProps<{
 const route = useRoute()
 const {
   params: { id, documentId },
-  query: { from, isShared },
+  query: { from },
 } = route as any
-
-const shareDisabled = computed(() => {
-  return isShared === 'true'
-})
 
 const apiType = computed(() => {
   return from as 'systemShare' | 'workspace' | 'systemManage'
@@ -227,7 +222,7 @@ async function changeState(row: any) {
     })
 }
 function getDetail() {
-  loadSharedApi({ type: 'knowledge', systemType: apiType.value, isShared: shareDisabled.value})
+  loadSharedApi({ type: 'knowledge', systemType: apiType.value })
     .getKnowledgeDetail(id, loading)
     .then((res: any) => {
       knowledgeDetail.value = res.data
@@ -271,7 +266,14 @@ function editParagraph(row: any) {
 
 const cardClick = permissionPrecise.value.doc_edit(id)
 
-function handleClickCard(row: any) {
+function handleClickCard(row: any, e?: MouseEvent) {
+  // 点击图片时不触发段落弹窗，保留图片预览行为
+  if (e) {
+    const target = e.target as HTMLElement
+    if (target && (target.tagName?.toLowerCase() === 'img' || target.closest('img'))) {
+      return
+    }
+  }
   if (!cardClick || dialogVisible.value) {
     return
   }
@@ -282,6 +284,7 @@ function handleClickCard(row: any) {
     emit('clickCard')
   }
 }
+
 
 function addParagraph(row: any) {
   title.value = t('views.paragraph.addParagraph')
