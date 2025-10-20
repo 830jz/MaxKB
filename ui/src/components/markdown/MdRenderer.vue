@@ -30,15 +30,23 @@
         v-else-if="item.type === 'form_rander'"
         :form_setting="item.content"
       ></FormRander>
-      <MdPreview
-        v-else
-        ref="editorRef"
-        editorId="preview-only"
-        :modelValue="item.content"
-        :key="index"
-        class="maxkb-md"
-      />
+      <div v-else class="md-preview-with-viewer" @click.capture="onMdClick">
+        <MdPreview
+          ref="editorRef"
+          editorId="preview-only"
+          :modelValue="item.content"
+          :key="index"
+          class="maxkb-md"
+          noImgZoomIn
+        />
+      </div>
     </template>
+    <ElImageViewer
+      v-if="showViewer"
+      :url-list="urlList"
+      :initial-index="initialIndex"
+      @close="showViewer = false"
+    />
   </div>
 </template>
 <script setup lang="ts">
@@ -49,6 +57,7 @@ import EchartsRander from './EchartsRander.vue'
 import FormRander from './FormRander.vue'
 import ReasoningRander from './ReasoningRander.vue'
 import { nanoid } from 'nanoid'
+import { ElImageViewer } from 'element-plus'
 config({
   markdownItConfig(md) {
     md.renderer.rules.image = (tokens, idx, options, env, self) => {
@@ -95,6 +104,26 @@ const md_view_list = computed(() => {
   )
 })
 
+// 自定义图片查看器（支持旋转）
+const showViewer = ref(false)
+const urlList = ref<string[]>([])
+const initialIndex = ref(0)
+function onMdClick(e: MouseEvent) {
+  const target = e.target as HTMLElement
+  if (!target) return
+  const imgEl =
+    target.tagName?.toLowerCase() === 'img'
+      ? (target as HTMLImageElement)
+      : (target.closest('img') as HTMLImageElement | null)
+  if (!imgEl) return
+  const container = e.currentTarget as HTMLElement
+  if (!container) return
+  const imgs = Array.from(container.querySelectorAll('img'))
+  urlList.value = imgs.map((img) => img.getAttribute('src') || '')
+  initialIndex.value = Math.max(0, imgs.indexOf(imgEl))
+  showViewer.value = true
+}
+
 const split_quick_question = (result: Array<string>) => {
   return result
     .map((item) => split_quick_question_(item))
@@ -130,10 +159,6 @@ const split_quick_question_ = (source: string) => {
 }
 const split_html_rander = (result: Array<any>) => {
   return result
-    .map((item) => split_html_rander_(item.content, item.type))
-    .reduce((x: any, y: any) => {
-      return [...x, ...y]
-    }, [])
 }
 
 const split_html_rander_ = (source: string, type: string) => {
